@@ -11,21 +11,37 @@
         const SUPABASE_URL = "https://ixtcqppcjbhwkodgpgaf.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4dGNxcHBjamJod2tvZGdwZ2FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NTM4NDcsImV4cCI6MjA5NjEyOTg0N30.RcdwAp6FXI6J6cSARsQmrypOAMZ6deoP2MBaRYpWMSU";
 
-        // Kita coba test panggil salah satu tabel yang ada di Supabase kamu (misal: 'users' atau 'rest')
-        fetch(`${SUPABASE_URL}/rest/v1/?apikey=${SUPABASE_ANON_KEY}`)
-            .then(response => {
-                if(response.ok) {
-                    document.getElementById('status').innerText = "✅ KONEKSI BERHASIL! Vercel & Supabase Connect!";
-                    document.getElementById('status').style.color = "green";
-                } else {
-                    document.getElementById('status').innerText = "❌ Respon error dari Supabase. Cek API Key.";
-                    document.getElementById('status').style.color = "red";
-                }
-            })
-            .catch(error => {
-                document.getElementById('status').innerText = "❌ Koneksi Gagal Total: " + error;
+        // Kita panggil endpoint REST root dengan header apikey + Authorization
+        // Supabase REST membutuhkan header `apikey` dan `Authorization: Bearer <anon key>`
+        fetch(`${SUPABASE_URL}/rest/v1/`, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Accept': 'application/json'
+            }
+        })
+        .then(async response => {
+            const txt = await response.text().catch(() => '');
+            if (response.ok) {
+                document.getElementById('status').innerText = `✅ KONEKSI BERHASIL (HTTP ${response.status})`;
+                document.getElementById('status').style.color = "green";
+            } else if (response.status === 401 || response.status === 403) {
+                document.getElementById('status').innerText = `❌ Otorisasi gagal (HTTP ${response.status}). Periksa SUPABASE_ANON_KEY.`;
                 document.getElementById('status').style.color = "red";
-            });
+            } else if (response.status === 404) {
+                document.getElementById('status').innerText = `⚠️ Terhubung, tapi endpoint mengembalikan 404 (HTTP 404). Response: ${txt}`;
+                document.getElementById('status').style.color = "orange";
+            } else {
+                document.getElementById('status').innerText = `❌ Respon error dari Supabase (HTTP ${response.status}).`;
+                document.getElementById('status').style.color = "red";
+            }
+        })
+        .catch(error => {
+            document.getElementById('status').innerText = "❌ Koneksi Gagal Total: " + (error.message || error);
+            document.getElementById('status').style.color = "red";
+        });
     </script>
 </body>
 </html>

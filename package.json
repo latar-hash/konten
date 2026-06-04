@@ -1,0 +1,11 @@
+{
+  "name": "supabase-vercel-check",
+  "version": "0.1.0",
+  "type": "commonjs",
+  "scripts": {
+    "check": "node check-supabase.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
