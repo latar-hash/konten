@@ -5,95 +5,75 @@ export default async function Page() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
-  // Ini kodingan bawaanmu buat narik data dari Supabase. 
-  // Kita amankan biar gak error kalau tabel 'todos' belum kamu bikin di Supabase.
-  const { data: todos } = await supabase.from('todos').select()
+  // Mengambil data langsung dari PostgreSQL View yang kamu buat
+  const { data: contentsSummary, error } = await supabase
+    .from('content_performance_summary')
+    .select('*')
+
+  if (error) {
+    console.error("Supabase error:", error.message)
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-white font-sans">
-      {/* 1. Header / Navbar Mini */}
+      {/* Navbar */}
       <header className="container mx-auto px-6 py-6 flex justify-between items-center border-b border-slate-800">
         <div className="text-2xl font-bold tracking-wider text-indigo-400">
           Winning<span className="text-white">Ads</span>
         </div>
-        <nav className="space-x-6 hidden md:block text-sm text-slate-400">
-          <a href="#features" className="hover:text-white transition">Features</a>
-          <a href="#todos-section" className="hover:text-white transition">Database Test</a>
-        </nav>
         <button className="bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold px-4 py-2 rounded-lg transition">
           Dashboard
         </button>
       </header>
 
-      {/* 2. Hero Section */}
-      <main className="container mx-auto px-6 py-20 text-center max-w-4xl">
-        <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Bikin Iklan Konversi Tinggi, Nggak Pake Ribet.
+      {/* Hero */}
+      <main className="container mx-auto px-6 py-12 text-center max-w-4xl">
+        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          Database Connection Verified!
         </h1>
-        <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
-          Pantau, optimasi, dan menangkan kompetisi pasar digital. Integrasi data marketplace dan performa ads langsung dalam satu dashboard terpusat.
+        <p className="text-slate-400 text-sm mb-8">
+          Berhasil terhubung dengan arsitektur database skema iklan pasar digital.
         </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <button className="bg-indigo-600 hover:bg-indigo-500 font-medium px-8 py-4 rounded-xl shadow-lg shadow-indigo-600/30 transition">
-            Mulai Sekarang (Gratis)
-          </button>
-          <button className="border border-slate-700 hover:bg-slate-800 font-medium px-8 py-4 rounded-xl transition">
-            Pelajari Fitur
-          </button>
-        </div>
-      </main>
 
-      {/* 3. Real-time Data dari Supabase (Pindahan kode bawaanmu) */}
-      <section id="todos-section" className="bg-slate-950 py-12 border-t border-b border-slate-800">
-        <div className="container mx-auto px-6 max-w-md bg-slate-900 p-6 rounded-2xl border border-slate-800 text-center">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-indigo-400 mb-4">
-            📡 Data Real-time Supabase
-          </h3>
-          
-          {/* Menguji apakah koneksi berhasil memunculkan data */}
-          {todos && todos.length > 0 ? (
-            <ul className="text-left space-y-2">
-              {todos.map((todo) => (
-                <li key={todo.id} className="bg-slate-800 px-4 py-2 rounded-lg text-sm border border-slate-700">
-                  ✅ {todo.name}
-                </li>
+        {/* Kotak Tes Koneksi Data Nyata */}
+        <div className="max-w-2xl mx-auto bg-slate-950 p-6 rounded-2xl border border-slate-800 text-left">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-indigo-400">
+              📊 Data View: content_performance_summary
+            </h3>
+            <span className="bg-green-500/10 text-green-400 text-xs px-2.5 py-1 rounded-full font-medium border border-green-500/20">
+              Active Connection
+            </span>
+          </div>
+
+          {error ? (
+            <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-red-400 text-sm">
+              ❌ Gagal mengambil data View: {error.message}
+            </div>
+          ) : contentsSummary && contentsSummary.length > 0 ? (
+            <div className="space-y-4">
+              {contentsSummary.map((item: any) => (
+                <div key={item.content_id} className="bg-slate-900 p-4 rounded-xl border border-slate-800 text-sm space-y-2">
+                  <div className="flex justify-between font-mono text-xs text-slate-400">
+                    <span>Code: {item.content_id_code}</span>
+                    <span className="text-indigo-400 font-bold">{item.fase}</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800 text-xs">
+                    <div><span className="text-slate-500">Produk:</span> <p className="font-semibold text-white">{item.product_name}</p></div>
+                    <div><span className="text-slate-500">Writer:</span> <p className="font-semibold text-white">{item.script_writer}</p></div>
+                    <div><span className="text-slate-500">Spend:</span> <p className="font-semibold text-white">Rp {item.total_spend.toLocaleString('id-ID')}</p></div>
+                    <div><span className="text-slate-500">Status Konten:</span> <p className="font-semibold text-emerald-400">{item.progress}</p></div>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           ) : (
-            <p className="text-sm text-slate-500">
-              Koneksi aman, tapi belum ada data di tabel &apos;todos&apos; kamu.
+            <p className="text-xs text-slate-500 text-center py-4">
+              Koneksi aman ke Supabase, tapi data di tabel contents masih kosong melongpong.
             </p>
           )}
         </div>
-      </section>
-
-      {/* 4. Feature Highlight Section */}
-      <section id="features" className="py-20">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Kenapa Memilih WinningAds?</h2>
-            <p className="text-slate-400">Arsitektur sistem yang didesain khusus untuk efisiensi tim marketing dan akselerasi data.</p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="bg-slate-900 p-8 rounded-2xl border border-slate-800">
-              <div className="text-indigo-400 text-3xl mb-4">📊</div>
-              <h3 className="text-xl font-bold mb-2">Data Terpusat</h3>
-              <p className="text-slate-400 text-sm">Satukan metrik performa Meta Ads dan marketplace tanpa perlu buka banyak tab.</p>
-            </div>
-            <div className="bg-slate-900 p-8 rounded-2xl border border-slate-800">
-              <div className="text-purple-400 text-3xl mb-4">⚡</div>
-              <h3 className="text-xl font-bold mb-2">SOP Otomatis</h3>
-              <p className="text-slate-400 text-sm">Sistem framework monitoring terstruktur agar jalannya tim tetap terarah dan terukur.</p>
-            </div>
-            <div className="bg-slate-900 p-8 rounded-2xl border border-slate-800">
-              <div className="text-pink-400 text-3xl mb-4">🗄️</div>
-              <h3 className="text-xl font-bold mb-2">Supabase Sync</h3>
-              <p className="text-slate-400 text-sm">Penyimpanan database data leads aman, super cepat, dan real-time tanpa delay.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      </main>
     </div>
   )
 }
