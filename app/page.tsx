@@ -7,6 +7,7 @@ const ROUTES: { href: string; label: string; group: 'Public' | 'Dashboard' }[] =
   { href: '/upload', label: 'Upload CSV', group: 'Public' },
   { href: '/dashboard', label: 'Dashboard', group: 'Dashboard' },
   { href: '/projects', label: 'Projects', group: 'Dashboard' },
+  { href: '/adops', label: 'Ad Ops', group: 'Dashboard' },
   { href: '/contents', label: 'Contents', group: 'Dashboard' },
   { href: '/contents/new', label: 'New Content', group: 'Dashboard' },
 ]
