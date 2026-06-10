@@ -1,5 +1,15 @@
 import { createClient } from '@/app/utils/supabase/server'
 import { cookies } from 'next/headers'
+import Link from 'next/link'
+
+const ROUTES: { href: string; label: string; group: 'Public' | 'Dashboard' }[] = [
+  { href: '/', label: 'Home', group: 'Public' },
+  { href: '/upload', label: 'Upload CSV', group: 'Public' },
+  { href: '/dashboard', label: 'Dashboard', group: 'Dashboard' },
+  { href: '/projects', label: 'Projects', group: 'Dashboard' },
+  { href: '/contents', label: 'Contents', group: 'Dashboard' },
+  { href: '/contents/new', label: 'New Content', group: 'Dashboard' },
+]
 
 export default async function Page() {
   const cookieStore = await cookies()
@@ -34,6 +44,29 @@ export default async function Page() {
         <p className="text-slate-400 text-sm mb-8">
           Berhasil terhubung dengan arsitektur database skema iklan pasar digital.
         </p>
+
+        {/* Route Tester */}
+        <div className="max-w-2xl mx-auto bg-slate-950 p-6 rounded-2xl border border-slate-800 text-left mb-8">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-indigo-400 mb-4">
+            🧪 Route Tester
+          </h3>
+          {(['Public', 'Dashboard'] as const).map((group) => (
+            <div key={group} className="mb-4 last:mb-0">
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">{group}</p>
+              <div className="flex flex-wrap gap-2">
+                {ROUTES.filter((r) => r.group === group).map((r) => (
+                  <Link
+                    key={r.href}
+                    href={r.href}
+                    className="bg-slate-900 hover:bg-indigo-600 border border-slate-800 hover:border-indigo-500 text-xs px-3 py-1.5 rounded-lg transition font-mono"
+                  >
+                    {r.label} <span className="text-slate-500">{r.href}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
 
         {/* Kotak Tes Koneksi Data Nyata */}
         <div className="max-w-2xl mx-auto bg-slate-950 p-6 rounded-2xl border border-slate-800 text-left">

@@ -2,7 +2,58 @@
 
 import { createClient } from '@/app/utils/supabase/server'
 import { cookies } from 'next/headers'
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { ParsedAdRow, AdPlatform } from '@/app/types/database'
+
+export async function createContent(formData: FormData) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
+
+  const product_id = String(formData.get('product_id') ?? '')
+  const skrip_konten = String(formData.get('skrip_konten') ?? '').trim()
+  const tanggal = String(formData.get('tanggal') ?? '')
+  const format = String(formData.get('format') ?? '').trim()
+  const script_writer = String(formData.get('script_writer') ?? '').trim().toUpperCase()
+  const pic_name = String(formData.get('pic_name') ?? '').trim().toUpperCase()
+  const pic_talent = String(formData.get('pic_talent') ?? 'Non Talent')
+  const progress = String(formData.get('progress') ?? 'Backlog')
+  const type_market = String(formData.get('type_market') ?? '') || null
+
+  if (!product_id || !skrip_konten || !tanggal || !format) {
+    throw new Error('product_id, skrip_konten, tanggal, format wajib diisi')
+  }
+
+  const { data: product } = await supabase.from('products').select('code').eq('id', product_id).maybeSingle()
+  if (!product) throw new Error('Product not found')
+
+  const { count } = await supabase.from('contents').select('*', { count: 'exact', head: true })
+  const no_urut = (count ?? 0) + 1
+
+  const d = new Date(tanggal)
+  const dateLabel = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+  const content_id_code = `${no_urut}-${product.code}-${format}-${script_writer}-${pic_name}-${dateLabel}`
+
+  const { error } = await supabase.from('contents').insert({
+    no_urut,
+    content_id_code,
+    tanggal,
+    skrip_konten,
+    product_id,
+    format,
+    script_writer,
+    pic_talent,
+    pic_name,
+    progress,
+    type_market,
+  })
+
+  if (error) throw new Error(error.message)
+
+  revalidatePath('/contents')
+  revalidatePath('/projects')
+  redirect('/contents')
+}
 
 interface UploadResult {
   success: boolean
