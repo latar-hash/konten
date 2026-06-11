@@ -64,6 +64,77 @@ interface UploadResult {
   upload_log_id?: string
 }
 
+interface MappingRegisterInput {
+  content_id: string
+  ad_id_platform: string
+  ad_name_raw: string
+  campaign_id: string | null
+  account_id: string | null
+  account_name: string | null
+}
+
+interface MappingRegisterResult {
+  success: boolean
+  message: string
+  registered: number
+  skipped_duplicate: number
+  skipped_unmatched: number
+  failed: number
+}
+
+export async function registerAdMappings(
+  rows: MappingRegisterInput[],
+  unmatchedCount: number,
+): Promise<MappingRegisterResult & { first_error?: string }> {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
+
+  let registered = 0
+  let skippedDup = 0
+  let failed = 0
+  let firstError: string | undefined
+
+  for (const row of rows) {
+    const { error } = await supabase.from('content_ad_links').insert({
+      content_id: row.content_id,
+      platform: 'meta',
+      ad_id_platform: row.ad_id_platform,
+      ad_name_raw: row.ad_name_raw,
+      campaign_id: row.campaign_id,
+      account_id: row.account_id,
+      account_name: row.account_name,
+    })
+
+    if (!error) {
+      registered++
+    } else if (error.code === '23505') {
+      skippedDup++
+    } else {
+      failed++
+      console.error('[registerAdMappings] insert failed', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        row,
+      })
+      if (!firstError) firstError = `${error.code || ''} ${error.message}`.trim()
+    }
+  }
+
+  return {
+    success: failed === 0,
+    message:
+      `Register selesai: ${registered} baru, ${skippedDup} sudah ada, ${unmatchedCount} unmatched, ${failed} gagal.` +
+      (firstError ? ` Sample error: ${firstError}` : ''),
+    registered,
+    skipped_duplicate: skippedDup,
+    skipped_unmatched: unmatchedCount,
+    failed,
+    first_error: firstError,
+  }
+}
+
 export async function importAdPerformances(
   rows: ParsedAdRow[],
   platform: AdPlatform,

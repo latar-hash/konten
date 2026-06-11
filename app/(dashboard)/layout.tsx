@@ -6,6 +6,8 @@ const NAV = [
   { href: '/adops', label: 'Ad Ops', icon: '📈' },
   { href: '/contents', label: 'Contents', icon: '🎬' },
   { href: '/contents/new', label: '+ New Content', icon: '✍️' },
+  { href: '/uploads', label: 'Upload CSV', icon: '⬆️' },
+  { href: '/uploads/mapping', label: '↳ Ad Mapping', icon: '🔗' },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
